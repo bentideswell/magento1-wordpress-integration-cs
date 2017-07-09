@@ -1,0 +1,77 @@
+##
+# WordPress Customer Synchronisation
+#
+# Author:		FishPig
+# URL:			https://fishpig.co.uk/magento/wordpress-integration/customer-synchronisation/
+# Email:		help@fishpig.co.uk
+##
+
+15/06/2017 - v1.4.0.0
+- Fixed login issue
+
+30/04/2016 - v1.3.3.6
+- Fixed registering at checkout redirect (requires Fishpig_Wordpress 4.0.2.5 or above)
+
+10/03/2016 - v1.3.3.5
+- Fixed isEnabled issue.
+
+15/08/2013 - v1.3.3.0
+- Fixed bug that stopped customer being logged in to WordPress after creating new account in Magento
+
+17/07/2013 - v1.3.2.0
+- Added support for Disqus Single Sign-On (SSO)
+
+10/07/2013 - v1.3.0.0
+- Added support for WordPress Integration v3.0
+
+30/03/2013 - v1.2.0.5
+- Added backwards compatibility for Magento 1.4.2.0
+
+15/01/2013 - v1.2.0.4
+- Added option to enable extension when in semi-integration mode
+- Added option to specify a custom attribute to be used for the WP username
+
+31/10/2012 - v1.2.0.3
+- Fixed issue with user's not having login name
+
+15/10/2012 - v1.2.0.2
+- Small fix when WordPress user logging in to Magento with out Magento customer account
+
+15/10/2012 - v1.2.0.1
+- Added functionality to physically log the customer into WordPress when logging in to Magento
+
+15/10/2012 - v1.2.0.0
+- Rewritten core observer to be more compact
+
+11/10/2012 - v1.1.0.1
+- Added integration test to notify about old extension and recommend deletion
+- Added setup file to try and delete app/etc/modules/Fishpig_WpCustomerSynch.xml
+
+03/10/2012 - v1.1.0.0
+- Migrated extension into WordPress/Addon/CS
+
+11/08/2012 - v1.0.0
+- Updated database adapter calls
+- Updated extension to work with new WordPress Integration Meta system
+
+17/07/2012 - v0.9.4
+- Added extension to extension manager in WordPress Integration
+
+30/11/2011 - v0.9.3
+- Fixed issue that caused Magento error page when open_basedir restriction is in effect
+- Fixed issue with user posts
+
+28/11/2011 - v0.9.2
+- Added menu item for Synchronisation options page
+- Added ability to change default user role from the WordPress Admin. This means you can allow Magento users to post blogs
+- Added sync for Magento reset password system
+- Added ability for users to view blogs they have posted
+- Added ability for users to post new blogs (if they have permission)
+- Migrated WordPress blocks (comment list) into extension
+
+29/07/2011 - v0.9.1
+- Added observer for customer registering via the checkout
+
+23/07/2011 - v0.9.0
+- Extension created and released
+- Added backwards compatibility for old WordPress installations that use md5 password hashing
