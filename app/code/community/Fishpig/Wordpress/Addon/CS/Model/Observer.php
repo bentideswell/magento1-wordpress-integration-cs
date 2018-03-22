@@ -359,7 +359,7 @@ class Fishpig_Wordpress_Addon_CS_Model_Observer
 	 */
 	public function isEnabled()
 	{
-		return true;
+		return Mage::helper('wordpress')->isEnabled();
 	}
 	
 	/**
