@@ -2,7 +2,7 @@
 <config>
   <modules>
     <Fishpig_Wordpress_Addon_CS>
-      <version>1.4.0.3</version>
+      <version>1.4.0.4</version>
       <fishpig>
       	<id>customer-synch</id>
       	<name>Customer Synchronisation</name>
@@ -72,4 +72,11 @@
 			</wordpress_disqus_before_sso>
 		</events>
 	</frontend>
+	<wordpress>
+		<core>
+			<modules>
+				<wp_addon_cs/>
+			</modules>
+		</core>
+	</wordpress>
 </config>
