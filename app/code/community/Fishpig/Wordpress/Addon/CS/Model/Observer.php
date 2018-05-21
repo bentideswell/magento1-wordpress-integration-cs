@@ -289,16 +289,7 @@ class Fishpig_Wordpress_Addon_CS_Model_Observer
 	**/
 	protected function _getCoreHelper()
 	{
-		if ($node = Mage::app()->getConfig()->getNode('wordpress/core/modules')) {
-			$coreModules = array_flip($node->asArray());
-			$coreHelper = Mage::helper(array_pop($coreModules) . '/core');
-			
-			if ($coreHelper->isActive()) {
-				return $coreHelper;	
-			}
-		}
-		
-		return false;
+		return Mage::helper('wp_addon_cs/core');
 	}
 
 	/**
