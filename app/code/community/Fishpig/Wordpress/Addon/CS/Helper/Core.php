@@ -29,6 +29,11 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 **/
 	protected $_wpAutoloaders = false;
 
+	/*
+	 *
+	 */
+	protected $_simulationActive = false;
+
 	/**
 	 * Set the connection to WordPress
 	 * 
@@ -181,8 +186,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 */
 	public function getHtml()
 	{
-		return ($html = Mage::registry('wordpress_html'))
-			? $html: false;
+		return ($html = Mage::registry('wordpress_html')) ? $html: false;
 	}
 
 	/*
@@ -272,6 +276,12 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 */
 	public function startWordPressSimulation()
 	{
+		if ($this->_simulationActive) {
+			return $this;
+		}
+		
+		$this->_simulationActive = true;
+
 		$path = Mage::helper('wordpress')->getWordPressPath();
 		$translate = Mage::getSingleton('wordpress/translate');
 		
@@ -307,12 +317,16 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 */
 	public function endWordPressSimulation()
 	{
+		if (!$this->_simulationActive) {
+			return $this;
+		}
+		
+		$this->_simulationActive = false;
+
 		if ($this->_simulatorVars !== false) {
 			// Grab any WP autoloaders
-			if (spl_autoload_functions() && !$this->_wpAutoloaders) {
-				$this->_wpAutoloaders = spl_autoload_functions();
-			}
-			
+			$this->_wpAutoloaders = $this->_unregisterAutoloaders();
+
 			// Reinstate the Magento autloaders
 			$this->_registerAutoloaders($this->_simulatorVars['autoloaders']);
 			
@@ -376,14 +390,22 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 		
 		if ($this->isActive()) {
 			try {
-				$this->startWordPressSimulation();
+				$isSimulationAlreadyActive = $this->_simulationActive;
+				
+				if (!$isSimulationAlreadyActive) {
+					$this->startWordPressSimulation();
+				}
 				
 				$result = call_user_func_array($callback, $params);
 				
-				$this->endWordPressSimulation();
+				if (!$isSimulationAlreadyActive) {
+					$this->endWordPressSimulation();
+				}
 			}
 			catch (Exception $e) {
-				$this->endWordPressSimulation();
+				if (!$isSimulationAlreadyActive) {
+					$this->endWordPressSimulation();
+				}
 				
 				Mage::helper('wordpress')->log($e);
 			}
