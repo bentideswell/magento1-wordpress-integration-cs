@@ -196,7 +196,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 *
 	 * @return $this
 	 */
-	public function startWordPressSimulation()
+	protected function startWordPressSimulation()
 	{
 		if ($this->_isSimulationActive()) {
 			return $this;
@@ -221,7 +221,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 *
 	 * @return $this
 	 */
-	public function endWordPressSimulation()
+	protected function endWordPressSimulation()
 	{
 		if (!$this->_isSimulationActive()) {
 			return $this;
@@ -240,6 +240,24 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 		return $this;
 	}
 
+	/*
+	 *
+	 * @param  string $code
+	 * @return string
+	 */
+	public function doShortcode($code)
+	{
+		return $this->simulatedCallback(
+			function($code) {
+				return str_replace(
+					array('&#091;', '&#093;'), 
+					array('[', ']'), 
+					do_shortcode($code)
+				);
+			}, array($code)
+		);
+	}
+	
 	/*
 	 * Perform a callback during WordPress simulation mode
 	 *
@@ -379,9 +397,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 		// Remove existing loaders
 		if ($existingLoaders = spl_autoload_functions()) {
 			foreach ($existingLoaders as $existingLoader) {
-				if (!spl_autoload_unregister($existingLoader)) {
-					exit('could not remove.');
-				}
+				spl_autoload_unregister($existingLoader);
 			}
 		}
 		
