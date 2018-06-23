@@ -1,11 +1,9 @@
 <?php
-/**
- * @category Fishpig
- * @package Fishpig_Wordpress
- * @license http://fishpig.co.uk/license.txt
- * @author Ben Tideswell <ben@fishpig.co.uk>
+/*
+ *
+ * @Obfuscate
+ *
  */
-
 class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 {
 	/**
@@ -13,27 +11,10 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 *
 	 * @const string
 	 */
-	const STATUS_KEY = 'wordpress_core_status';
-
-	/**
-	 * Variables used for WordPress environment simulation
-	 *
-	 * @var array|false
-	 **/
-	protected $_simulatorVars = false;
+	const KEY_STATUS            = 'wordpress_core_status';
+	const KEY_SIMULATION_ACTIVE = 'wordpress_core_simulation_active';
+	const KEY_ENV_DATA          = 'wordpress_core_simvars';
 	
-	/**
-	 * WordPress autloaders
-	 *
-	 * @var array|false
-	 **/
-	protected $_wpAutoloaders = false;
-
-	/*
-	 *
-	 */
-	protected $_simulationActive = false;
-
 	/**
 	 * Set the connection to WordPress
 	 * 
@@ -99,7 +80,12 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 			}
 			
 			// This loads Zend_Log before WP loads in case we need it			
-			$this->_handlePotentialMissingIncludes();
+			class_exists('Mage_Core_Exception');
+			Mage::helper('log');
+			Mage::helper('wordpress');
+			Zend_Log::ERR;
+			Zend_Log_Formatter_Simple::DEFAULT_FORMAT;
+			class_exists('Zend_Log_Writer_Stream');
 
 			if (Mage::helper('wordpress')->isAddonInstalled('Multisite')) {
 				$multisiteHelper = Mage::helper('wp_addon_multisite');
@@ -132,7 +118,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 			$userAllowedSaveCookie = isset($_COOKIE['user_allowed_save_cookie']) ? $_COOKIE['user_allowed_save_cookie'] : false;
 			
 			$this->startWordPressSimulation();
-			
+
 			// Check wp-load.php exists
 			if (!is_file($path . 'wp-load.php')) {
 				throw new Exception(
@@ -157,24 +143,14 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 
 			$this->endWordPressSimulation();
 
-			$this->_setStatus(true);
-			
 			# Reset cookie notice cookie to original value
 			if ($userAllowedSaveCookie !== false) {
 				$_COOKIE['user_allowed_save_cookie'] = $userAllowedSaveCookie;
 			}
-			
-			if (defined('WP_DEBUG_OUTPUT') && WP_DEBUG_OUTPUT === true) {
-				echo $html;
-				exit;
-			}
+
+			$this->_setStatus(true);
 		}
 		catch (Exception $e) {
-			if (isset($_SERVER['FISHPIG'])) {
-				echo sprintf('<h1>%s</h1><pre>%s</pre>', $e->getMessage(), $e->getTraceAsString());
-				exit;
-			}
-			
 			$this->_setStatus(false);
 			Mage::logException($e);
 			Mage::helper('wordpress')->log($e->getMessage());
@@ -190,73 +166,6 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	{
 		return ($html = Mage::registry('wordpress_html')) ? $html: false;
 	}
-
-	/*
-	 * Update an array
-	 *
-	 */
-	protected function _updateArray(&$a, $values)
-	{
-		$originals = array();
-		
-		foreach($values as $key => $value) {
-			if (isset($a[$key]))	 {
-				$originals[$key] = $a[$key];
-			}
-			
-			$a[$key] = $value;
-		}
-		
-		return $originals;
-	}
-
-	/**
-	 * Determine whether connection to WP code library has been made
-	 *
-	 * @return bool
-	 */	
-	public function isActive()
-	{
-		return Mage::registry('wordpress_core_status') === true;
-	}
-	
-	/**
-	 * Unregister the existing autoloaders
-	 *
-	 * @return array
-	 */
-	protected function _unregisterAutoloaders()
-	{
-		$existingLoaders = spl_autoload_functions();
-
-		if (is_array($existingLoaders)) {
-			foreach ($existingLoaders as $existingLoader) {
-				spl_autoload_unregister($existingLoader);
-			}
-		}
-		
-		return $existingLoaders;
-	}
-	
-	/**
-	 * Register autoloaders
-	 *
-	 * @param array $autoloaders
-	 * @return $this
-	 */
-	protected function _registerAutoloaders(array $autoloaders)
-	{
-		foreach ($autoloaders as $autoloader) {
-			if (is_object($autoloader) && $autoloader instanceof Closure) {
-				spl_autoload_register($autoloader, false);
-			}
-			else {
-				spl_autoload_register($autoloader, (isset($autoloader[0]) && $autoloader[0] instanceof Varien_Autoload));
-			}
-		}
-		
-		return $this;
-	}	
 	
 	/**
 	 * Set the status flag
@@ -266,11 +175,22 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 */
 	protected function _setStatus($flag)
 	{
-		Mage::register(self::STATUS_KEY, $flag, true);
+		Mage::register(self::KEY_STATUS, $flag, true);
 		
 		return $this;
 	}
 		
+
+	/**
+	 * Determine whether connection to WP code library has been made
+	 *
+	 * @return bool
+	 */	
+	public function isActive()
+	{
+		return Mage::registry(self::KEY_STATUS) === true;
+	}
+	
 	/**
 	 * Start the WordPress simulation and store the environment vars
 	 *
@@ -278,36 +198,20 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 */
 	public function startWordPressSimulation()
 	{
-		if ($this->_simulationActive) {
+		if ($this->_isSimulationActive()) {
 			return $this;
 		}
-		
-		$this->_simulationActive = true;
 
-		$path = Mage::helper('wordpress')->getWordPressPath();
 		$translate = Mage::getSingleton('wordpress/translate');
-		
-		if ($this->_simulatorVars === false && $path !== false) {
-			$this->_simulatorVars = array(
-				'autoloaders' => $this->_unregisterAutoloaders(),
-				'path' => getcwd(),
-			);
-			
-			if (isset($_GET['p'])) {
-				$this->_simulatorVars['p'] = $_GET['p'];
-				unset($_GET['p']);
-			}
-		
-			// Set the current directory to the WordPress path
-			chdir($path);
-			
-			// If WP sets autloaders, save them for re-use later
-			if ($this->_wpAutoloaders) {
-				$this->_registerAutoloaders($this->_wpAutoloaders);
-			}
-			
-			$translate->isSimulationActive(true);
+						
+		$this->_setIsSimulationActive(true);
+
+		// Save the Magento environment
+		if ($wpEnvData = $this->takeEnvironmentSnapshot()) {
+			$this->applyEnvironmentSnapshot($wpEnvData);
 		}
+
+		$translate->isSimulationActive(true);
 		
 		return $this;
 	}
@@ -319,66 +223,22 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	 */
 	public function endWordPressSimulation()
 	{
-		if (!$this->_simulationActive) {
+		if (!$this->_isSimulationActive()) {
 			return $this;
 		}
+
+		$this->_setIsSimulationActive(false);
 		
-		$this->_simulationActive = false;
+		// Save the WordPress environment
+		$magentoEnvData = $this->takeEnvironmentSnapshot();
 
-		if ($this->_simulatorVars !== false) {
-			// Grab any WP autoloaders
-			$this->_wpAutoloaders = $this->_unregisterAutoloaders();
+		// Apply the Magento env data
+		$this->applyEnvironmentSnapshot($magentoEnvData);
 
-			// Reinstate the Magento autloaders
-			$this->_registerAutoloaders($this->_simulatorVars['autoloaders']);
-			
-			// Change the path back to the Magento path
-			chdir($this->_simulatorVars['path']);
-			
-			if (isset($this->_simulatorVars['p']) && $this->_simulatorVars['p']) {
-				$_GET['p'] = $this->_simulatorVars['p'];
-			}
+		Mage::getSingleton('wordpress/translate')->isSimulationActive(false);
 
-			$this->_simulatorVars = false;
-			Mage::getSingleton('wordpress/translate')->isSimulationActive(false);
-		}
-		
 		return $this;
 	}
-
-	/**
-	 * Get the permissions for $file
-	 *
-	 * @param string $file
-	 * @return mixed
-	 */
-	protected function _getFilePermissions($file)
-	{
-		return substr(sprintf('%o', fileperms($file)), -4);
-	}
-	
-	/**
-	 * Ensure required classes are included
-	 *
-	 * @return $this
-	**/
-	protected function _handlePotentialMissingIncludes()
-	{
-		Mage::helper('log');
-
-		Zend_Log::ERR;
-		Zend_Log_Formatter_Simple::DEFAULT_FORMAT;
-
-		$classes = array(
-			'Zend_Log_Writer_Stream',
-		);
-
-		foreach($classes as $class) {
-			include_once(Mage::getBaseDir() . DS . 'lib' . DS . str_replace('_', DS, $class) . '.php');
-		}
-		
-		return $this;
-	}	
 
 	/*
 	 * Perform a callback during WordPress simulation mode
@@ -392,27 +252,140 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 		
 		if ($this->isActive()) {
 			try {
-				$isSimulationAlreadyActive = $this->_simulationActive;
-				
-				if (!$isSimulationAlreadyActive) {
-					$this->startWordPressSimulation();
-				}
+				$this->startWordPressSimulation();
 				
 				$result = call_user_func_array($callback, $params);
-				
-				if (!$isSimulationAlreadyActive) {
-					$this->endWordPressSimulation();
-				}
+
+				$this->endWordPressSimulation();
 			}
 			catch (Exception $e) {
-				if (!$isSimulationAlreadyActive) {
-					$this->endWordPressSimulation();
-				}
+				$this->endWordPressSimulation();
 				
 				Mage::helper('wordpress')->log($e);
 			}
 		}
 		
 		return $result;
+	}
+	
+	/**
+	 * Get the permissions for $file
+	 *
+	 * @param string $file
+	 * @return mixed
+	 */
+	protected function _getFilePermissions($file)
+	{
+		return substr(sprintf('%o', fileperms($file)), -4);
+	}
+	
+	/*
+	 *
+	 *
+	 * @return 
+	 */
+	protected function _isSimulationActive()
+	{
+		return (int)Mage::registry(self::KEY_SIMULATION_ACTIVE) === 1;
+	}
+	
+	/*
+	 *
+	 *
+	 * @return 
+	 */
+	protected function _setIsSimulationActive($flag)
+	{
+		if (!is_null(Mage::registry(self::KEY_SIMULATION_ACTIVE))) {
+			Mage::unregister(self::KEY_SIMULATION_ACTIVE);
+		}
+		
+		Mage::register(self::KEY_SIMULATION_ACTIVE, (int)$flag);
+
+		return $this;
+	}
+
+	/*
+	 *
+	 *
+	 * @return 
+	 */
+	protected function applyEnvironmentSnapshot(array $data)
+	{
+		if (!empty($data['autoloaders'])) {
+			foreach ($data['autoloaders'] as $autoloader) {
+				
+				if (is_object($autoloader) && $autoloader instanceof Closure) {
+					$throw = false;
+				}
+				else {
+					$throw = isset($autoloader[0]) && $autoloader[0] instanceof Varien_Autoload;
+				}
+				
+				if (isset($autoloader[0], $autoloader[1])) {
+					if ($autoloader[0] === 'Elementor\Autoloader' && $autoloader[1] === 'autoload') {
+						Elementor\Autoloader::run();
+						continue;
+					}
+				}
+				
+				if (!spl_autoload_register($autoloader, $throw)) {
+					Mage::helper('wordpress')->log(sprintf('Could not register autoloader. ' . print_r($autoloader, true)));
+				}
+			}
+		}
+		
+		if ($data['error_handler']) {
+			set_error_handler($data['error_handler']);
+		}
+			
+		if (!empty($data['path'])) {
+			chdir($data['path']);
+		}
+		
+		if (isset($data['display_errors'])) {
+			ini_set('display_errors', $data['display_errors']);
+		}
+		
+		if (!empty($data['p'])) {
+			$_GET['p'] = $data['p'];
+		}
+				
+		return $this;
+	}
+
+	/*
+	 *
+	 *
+	 * @return 
+	 */
+	protected function takeEnvironmentSnapshot()
+	{
+		if ($existingData = Mage::registry(self::KEY_ENV_DATA)) {
+			Mage::unregister(self::KEY_ENV_DATA);
+		}
+
+		// Load current data
+		$data = array(
+			'autoloaders' => spl_autoload_functions(),
+			'path' => getcwd(),
+			'display_errors' => ini_get('display_errors'),
+			'error_handler' => set_error_handler(null),
+			'p' => isset($_GET['p']) ? $_GET['p'] : false,
+		);
+
+		Mage::register(self::KEY_ENV_DATA, $data);
+		
+		// Remove existing loaders
+		if ($existingLoaders = spl_autoload_functions()) {
+			foreach ($existingLoaders as $existingLoader) {
+				if (!spl_autoload_unregister($existingLoader)) {
+					exit('could not remove.');
+				}
+			}
+		}
+		
+		// Return the old data
+		return $existingData;
 	}
 }
