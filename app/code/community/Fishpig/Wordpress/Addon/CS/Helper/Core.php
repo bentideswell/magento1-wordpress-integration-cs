@@ -34,13 +34,13 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 		
 		try {
 			if (($path = Mage::helper('wordpress')->getWordPressPath()) === false) {
-				throw new Exception($this->__("Can't read file '%s'.", Mage::helper('wordpress')->getRawWordPressPath() . 'wp-config.php'));
+				throw new Exception($this->__("Can't find file %s.", 'wp-config.php'));
 			}
 
 			$transFile = $path . 'wp-includes' . DS . 'l10n.php';
 			
 			if (!is_file($transFile)) {
-				throw new Exception($this->__("Can't read file '%s'.", $transFile));
+				throw new Exception($this->__("Can't find file '%s'.", $transFile));
 			}
 	
 			$content = file_get_contents($transFile);
@@ -340,7 +340,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 					$throw = isset($autoloader[0]) && $autoloader[0] instanceof Varien_Autoload;
 				}
 				
-				if (isset($autoloader[0], $autoloader[1])) {
+				if (is_array($autoloader) && isset($autoloader[0], $autoloader[1])) {
 					if ($autoloader[0] === 'Elementor\Autoloader' && $autoloader[1] === 'autoload') {
 						Elementor\Autoloader::run();
 						continue;
