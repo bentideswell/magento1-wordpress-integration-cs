@@ -15,6 +15,53 @@ class Fishpig_Wordpress_Addon_CS_Model_Observer
 	 */
 	protected $_debug = false;
 	
+	/*
+	 *
+	 *
+	 */
+	public function beforeAuthenticate($customer, $login, $password)
+	{
+		if (!$this->isCustomerSynchronisationEnabled()) {
+			return false;
+		}
+		
+		try {
+			if ($this->_emailExistsInMagento($login)) {
+				return false;	
+			}
+			
+			$user = Mage::getModel('wordpress/user')->loadByEmail($login);
+		
+			if (!$user->getId()) {
+				return false;
+			}
+
+			if (!$this->isValidWordPressPassword($password, $user->getUserPass())) {
+				return false;
+			}
+
+			$this->synchroniseUser($user->setMagentoPassword($password));
+		}
+		catch (Exception $e) {
+			$this->_handleException($e);
+		}
+		
+		return true;
+	}
+	
+	protected function _emailExistsInMagento($email)
+	{
+		$resource = Mage::getSingleton('core/resource');
+		$db       = $resource->getConnection('core_read');
+		
+		return (int)$db->fetchOne(
+			$db->select()
+				->from($resource->getTableName('customer_entity'), 'entity_id')	
+				->where('email=?', $email)
+				->limit(1)
+		) !== 0;
+	}
+	
 	/**
 	 * This observer runs each time a customer logs in to Magento
 	 * First, Magento checks whether the customer exists

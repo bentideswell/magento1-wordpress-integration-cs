@@ -2,7 +2,7 @@
 <config>
   <modules>
     <Fishpig_Wordpress_Addon_CS>
-      <version>1.4.0.12</version>
+      <version>1.4.0.14</version>
       <fishpig>
       	<id>customer-synch</id>
       	<name>Customer Synchronisation</name>
@@ -21,6 +21,16 @@
 		    <class>Fishpig_Wordpress_Addon_CS_Helper</class>
 	    </wp_addon_cs>
     </helpers>
+    <models>
+	    <wp_addon_cs>
+		    <class>Fishpig_Wordpress_Addon_CS_Model</class>
+	    </wp_addon_cs>
+	    <customer>
+		    <rewrite>
+			    <customer>Fishpig_Wordpress_Addon_CS_Model_Customer</customer>
+		    </rewrite>
+	    </customer>
+    </models>
 		<events>
       <customer_customer_authenticated>
       	<observers>

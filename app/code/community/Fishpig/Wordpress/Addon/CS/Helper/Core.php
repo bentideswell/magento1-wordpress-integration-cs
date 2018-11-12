@@ -133,15 +133,23 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 
 			@include_once($path . 'index.php');
 
-			if (headers_sent() && function_exists('header_remove')) {
-				header_remove();
-			}
-
 			$html = trim(ob_get_clean());
 
 			Mage::register('wordpress_html', $html);
 
 			$this->endWordPressSimulation();
+
+			if (function_exists('http_response_code')) {
+				if (http_response_code(404)) {
+					if ($responseCode = (int)Mage::app()->getResponse()->getHttpResponseCode()) {
+						http_response_code($responseCode);
+					}
+				}
+			}
+
+			if (function_exists('header_remove') && !headers_sent()) {
+				header_remove();
+			}
 
 			# Reset cookie notice cookie to original value
 			if ($userAllowedSaveCookie !== false) {
@@ -249,10 +257,16 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	{
 		return $this->simulatedCallback(
 			function($code) {
+				ob_start();
+				
+				echo do_shortcode($code);
+				
+				$content = ob_get_clean();
+
 				return str_replace(
 					array('&#091;', '&#093;'), 
 					array('[', ']'), 
-					do_shortcode($code)
+					$content
 				);
 			}, array($code)
 		);
