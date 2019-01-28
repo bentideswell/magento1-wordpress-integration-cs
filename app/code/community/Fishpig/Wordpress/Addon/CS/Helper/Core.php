@@ -1,8 +1,7 @@
 <?php
-/*
- *
- * @Obfuscate
- *
+/**
+ * @package Fishpig_Wordpress_Addon_CS
+ * @url     https://fishpig.co.uk/magento/wordpress-integration/
  */
 class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 {
