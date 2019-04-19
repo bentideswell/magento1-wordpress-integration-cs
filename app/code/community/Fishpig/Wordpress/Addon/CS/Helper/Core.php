@@ -1,7 +1,8 @@
 <?php
-/**
- * @package Fishpig_Wordpress_Addon_CS
- * @url     https://fishpig.co.uk/magento/wordpress-integration/
+/*
+ *
+ * @Obfuscate
+ *
  */
 class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 {
@@ -84,6 +85,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 			Mage::helper('wordpress');
 			Zend_Log::ERR;
 			Zend_Log_Formatter_Simple::DEFAULT_FORMAT;
+			Zend_Validate_File_Extension::NOT_FOUND;
 			class_exists('Zend_Log_Writer_Stream');
 
 			if (Mage::helper('wordpress')->isAddonInstalled('Multisite')) {
