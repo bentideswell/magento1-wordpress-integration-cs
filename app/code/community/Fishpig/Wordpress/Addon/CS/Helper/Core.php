@@ -87,6 +87,9 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 			Zend_Log_Formatter_Simple::DEFAULT_FORMAT;
 			Zend_Validate_File_Extension::NOT_FOUND;
 			class_exists('Zend_Log_Writer_Stream');
+			class_exists('Zend_Loader');
+			class_exists('Zend_Loader_Autoloader');
+			interface_exists('Zend_Loader_Autoloader_Interface');
 
 			if (Mage::helper('wordpress')->isAddonInstalled('Multisite')) {
 				$multisiteHelper = Mage::helper('wp_addon_multisite');
