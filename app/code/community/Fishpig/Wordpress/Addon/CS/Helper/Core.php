@@ -151,9 +151,9 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 				}
 			}
 
-			if (function_exists('header_remove') && !headers_sent()) {
-				header_remove();
-			}
+#			if (function_exists('header_remove') && !headers_sent()) {
+#				header_remove();
+#			}
 
 			# Reset cookie notice cookie to original value
 			if ($userAllowedSaveCookie !== false) {
