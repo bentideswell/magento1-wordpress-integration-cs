@@ -1,8 +1,9 @@
 <?php
-/*
- *
+/**
+ * @author    Ben Tideswell (ben@fishpig.co.uk)
+ * @module    Fishpig_Wordpress_Addon_CS
+ * @url       https://fishpig.co.uk/magento/wordpress-integration/
  * @Obfuscate
- *
  */
 class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 {
@@ -14,6 +15,7 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 	const KEY_STATUS            = 'wordpress_core_status';
 	const KEY_SIMULATION_ACTIVE = 'wordpress_core_simulation_active';
 	const KEY_ENV_DATA          = 'wordpress_core_simvars';
+	const KEY_SHUTDOWN_FUNC     = 'wordpress_core_shutdownfunc';
 	
 	/**
 	 * Set the connection to WordPress
@@ -412,6 +414,13 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 
 		Mage::register(self::KEY_ENV_DATA, $data);
 		
+		// Setup the shutdownHandler to check for errors
+		if (!Mage::registry(self::KEY_SHUTDOWN_FUNC)) {
+  		Mage::register(self::KEY_SHUTDOWN_FUNC, true);
+  		
+      register_shutdown_function(array($this, 'shutdownHandler'));
+		}
+		
 		// Remove existing loaders
 		if ($existingLoaders = spl_autoload_functions()) {
 			foreach ($existingLoaders as $existingLoader) {
@@ -422,4 +431,44 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 		// Return the old data
 		return $existingData;
 	}
+	
+	/**
+   * If a fatal error occurs during environment simulation, display it
+   *
+   *
+   * @return $this
+   */
+	public function shutdownHandler()
+  {
+    $displayErrors = ini_get('display_errors');
+    
+    if ((int)$displayErrors === 1 || in_array(strtolower($displayErrors), array('on', 'true'))) {
+      return $this;
+    }
+    
+    $error = @error_get_last();
+    
+    if (!$error || !is_array($error)) {
+      return $this;
+    }
+    
+    if (empty($error['type']) || (int)$error['type'] !== E_ERROR) {
+      return $this;
+    }
+    
+    if (!$this->_isSimulationActive()) {
+      return $this;
+    }
+
+    $errorMsg = sprintf(
+      "<b>Fatal error</b>: %s in <b>%s</b> on line <b>%d</b>", 
+      isset($error['message']) ? $error['message'] : '',
+      isset($error['file'])    ? $error['file'] : '', 
+      isset($error['line'])    ? (int)$error['line'] : ''
+    );
+
+    echo $errorMsg;
+    
+    return $this;  
+  }
 }
