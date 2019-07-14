@@ -461,8 +461,8 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
     }
 
     $errorMsg = sprintf(
-      "<b>Fatal error</b>: %s in <b>%s</b> on line <b>%d</b>", 
-      isset($error['message']) ? $error['message'] : '',
+      "<br />\n<b>Fatal error</b>:  %s in <b>%s</b> on line <b>%d</b>", 
+      isset($error['message']) ? htmlentities($error['message']) : '',
       isset($error['file'])    ? $error['file'] : '', 
       isset($error['line'])    ? (int)$error['line'] : ''
     );
