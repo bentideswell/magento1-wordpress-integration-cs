@@ -2,7 +2,7 @@
 <config>
   <modules>
     <Fishpig_Wordpress_Addon_CS>
-      <version>2.2.0.28</version>
+      <version>2.2.0.29</version>
       <fishpig>
       	<id>customer-synch</id>
       	<name>Customer Synchronisation</name>
