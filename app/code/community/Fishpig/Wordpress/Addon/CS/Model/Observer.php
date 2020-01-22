@@ -488,4 +488,25 @@ class Fishpig_Wordpress_Addon_CS_Model_Observer
 		
 		return $this;
 	}
+	
+	/**
+   *
+   *
+   */
+	public function customerLogoutObserver()
+	{
+  	$dataHelper   = Mage::helper('wordpress');
+  	$systemHelper = Mage::helper('wordpress/system');
+  	
+  	try {
+    	$this->_getCoreHelper()->simulatedCallback(function() {
+        wp_logout();
+    	});
+    }
+    catch (Exception $e) {
+      $dataHelper->log($e);
+    }
+    
+    return $this;
+	}
 }
