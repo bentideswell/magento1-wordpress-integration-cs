@@ -135,9 +135,15 @@ class Fishpig_Wordpress_Addon_CS_Helper_Core extends Mage_Core_Helper_Abstract
 			// Fix for Multisite set_prefix error
 			global $wpdb;
 
-			ob_start();
+            if (!defined('WP_CORE_DISABLE_OUTPUT_BUFFERING')) {
+    			ob_start();
+            }
 
 			@include_once($path . 'index.php');
+
+			if (defined('WP_CORE_DISABLE_OUTPUT_BUFFERING')) {
+                exit;
+            }
 
 			$html = trim(ob_get_clean());
 
